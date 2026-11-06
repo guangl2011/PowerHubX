@@ -1,0 +1,33 @@
+# Root tooling config for the PowerHubX monorepo. This file is NOT a build
+# target — installs happen per project (engine/, apps/api/). Ruff, mypy, and
+# pytest all read their [tool.*] sections from here so one invocation at the
+# repo root lints/checks/tests the whole Python side.
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["engine", "apps/api/src", "apps/api/tests", "engine/tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
+# N815/N803 etc. will matter when engine models carry unit-suffixed args.
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+# Editable installs drop copies under build/; never check them.
+exclude = ["(^|/)build/", "(^|/)\\.venv/"]
+# Third-party libs without shipped typing (some transitive deps) start in
+# silent mode; tighten per-module as stubs land.
+ignore_missing_imports = true
+files = ["engine", "apps/api/src"]
+
+[[tool.mypy.overrides]]
+module = ["api.*", "engine.*"]
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["engine/tests", "apps/api/tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["error"]
