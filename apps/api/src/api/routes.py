@@ -1,8 +1,8 @@
-"""Project store and site-profile endpoints (spec art_Xihp9Qa2, API shape).
+"""Simulate, ranked-results, and sensitivity endpoints (spec art_Xihp9Qa2).
 
 Routes own orchestration and error mapping only: 404 unknown project, 409
-state conflicts (no site), 422 body validation (pydantic, with field
-errors). All math is delegated to the engine.
+state conflicts (no site / no results), 422 body validation (pydantic, with
+field errors). All math is delegated to the engine.
 """
 
 from __future__ import annotations
@@ -13,7 +13,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from api import store
-from api.schemas import ProjectCreate, ProjectOut, SiteProfileIn
+from api.ranking import DEFAULT_WEIGHTS, rank_scenarios
+from api.schemas import (
+    ProjectCreate,
+    ProjectOut,
+    ResultsPayload,
+    ScenarioMetrics,
+    SensitivityIn,
+    SensitivityPayload,
+    SensitivityPointOut,
+    SimulateIn,
+    SiteProfileIn,
+    StoredResults,
+)
+from engine import ARCHITECTURES, SiteProfile, sweep
 
 router = APIRouter(prefix="/api")
 
@@ -34,6 +47,24 @@ def _site_or_409(project: store.Project) -> SiteProfileIn:
             detail="project has no site profile yet — submit one via PUT /api/projects/{id}/site",
         )
     return SiteProfileIn.model_validate_json(project.site_json)
+
+
+def _results_or_409(project: store.Project) -> StoredResults:
+    if project.results_json is None:
+        raise HTTPException(
+            status_code=409,
+            detail="project has no results yet — run POST /api/projects/{id}/simulate",
+        )
+    return StoredResults.model_validate_json(project.results_json)
+
+
+def _results_payload(project: store.Project, stored: StoredResults) -> ResultsPayload:
+    return ResultsPayload(
+        site_version=stored.site_version,
+        stale=stored.site_version != project.site_version,
+        weights=DEFAULT_WEIGHTS,
+        ranking=rank_scenarios(stored.metrics),
+    )
 
 
 def _project_out(project: store.Project) -> ProjectOut:
@@ -83,3 +114,46 @@ def replace_site(
     project.site_version += 1  # the stored run's results go stale via this bump
     session.commit()
     return _project_out(project)
+
+
+@router.post("/projects/{project_id}/simulate")
+def simulate(
+    project_id: str, session: Session = SessionDep, payload: SimulateIn | None = None
+) -> ResultsPayload:
+    project = _project_or_404(session, project_id)
+    site: SiteProfile = _site_or_409(project).to_engine()
+    selected = payload.architectures if payload else None
+    names = selected if selected is not None else list(ARCHITECTURES)
+    metrics = [ScenarioMetrics.from_engine(ARCHITECTURES[name].simulate(site)) for name in names]
+    stored = StoredResults(site_version=project.site_version, metrics=metrics)
+    project.results_json = stored.model_dump_json()
+    session.commit()
+    return _results_payload(project, stored)
+
+
+@router.get("/projects/{project_id}/results")
+def get_results(project_id: str, session: Session = SessionDep) -> ResultsPayload:
+    project = _project_or_404(session, project_id)
+    return _results_payload(project, _results_or_409(project))
+
+
+@router.post("/projects/{project_id}/sensitivity")
+def sensitivity(
+    project_id: str, payload: SensitivityIn, session: Session = SessionDep
+) -> SensitivityPayload:
+    project = _project_or_404(session, project_id)
+    site = _site_or_409(project).to_engine()
+    names = (
+        payload.architectures if payload.architectures is not None else list(ARCHITECTURES)
+    )
+    points = sweep(
+        site,
+        {payload.param: payload.range},
+        [ARCHITECTURES[name] for name in names],
+    )
+    return SensitivityPayload(
+        param=payload.param,
+        values=payload.range,
+        architectures=names,
+        points=[SensitivityPointOut.from_engine(p) for p in points],
+    )
