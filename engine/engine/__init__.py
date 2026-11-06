@@ -19,11 +19,21 @@ from .assumptions import LOSS_CHAINS, LossStage, chain_efficiency
 from .dispatch import dispatch_gpu_flexible_load
 from .models import CRITICALITY_LEVELS, SiteProfile
 from .results import HOURS_PER_YEAR, GpuDispatch, HourlySeries, ScenarioResult
+from .sensitivity import (
+    AXIS_EQUIPMENT_LEAD_TIME,
+    AXIS_GPU_UTILIZATION,
+    AXIS_TARIFF,
+    SensitivityPoint,
+    sweep,
+)
 
 __version__ = "0.1.0"
 
 __all__ = [
     "ARCHITECTURES",
+    "AXIS_EQUIPMENT_LEAD_TIME",
+    "AXIS_GPU_UTILIZATION",
+    "AXIS_TARIFF",
     "CRITICALITY_LEVELS",
     "HOURS_PER_YEAR",
     "LOSS_CHAINS",
@@ -36,8 +46,10 @@ __all__ = [
     "LossStage",
     "MvdcSstHybrid",
     "ScenarioResult",
+    "SensitivityPoint",
     "SiteProfile",
     "chain_efficiency",
     "dispatch_gpu_flexible_load",
     "simulate_all",
+    "sweep",
 ]
