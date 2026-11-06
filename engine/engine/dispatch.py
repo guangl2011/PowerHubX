@@ -42,7 +42,7 @@ def dispatch_gpu_flexible_load(
     bess_used = min(
         bess_discharge_mw,
         deficit_mw,
-        max(soc_mwh - min_soc_mwh, 0.0) / 1.0,
+        bess_available_discharge_mw(soc_mwh, min_soc_mwh),
     )
     residual = deficit_mw - bess_used
     curtailed = min(residual, flexible_gpu_mw)
