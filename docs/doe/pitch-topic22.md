@@ -32,7 +32,6 @@
 
 Large scientific and industrial facilities still power themselves through line-frequency magnetics: heavy, slow to protect, and blind to their own condition. We propose a SiC solid-state power conversion module combining voltage conversion, high-frequency isolation, microsecond fault protection, and high-speed self-diagnostic acquisition in one unit. Phase I proves the concept at 25 kW bench scale. This serves Topic 22's interest in high-performance electronics and data acquisition for DOE facility programs, with a commercial path into AI data center power systems.
 
-*(79 words)*
 
 ### A2. Technical Promise Narrative *(word limit: 200)*
 
@@ -42,7 +41,6 @@ Large scientific and industrial facilities still power themselves through line-f
 
 **Feasibility.** SiC power devices are commercially mature; the engineering risk is integration. The principal uncertainty is insulation and protection integrity at high switching frequency and power density: can a compact medium-frequency transformer survive repeated high dv/dt stress, and can protection act fast without nuisance trips? Phase I investigates both on a bench prototype.
 
-*(162 words)*
 
 ### A3. Commercialization Potential Narrative *(word limit: 200)*
 
@@ -52,7 +50,6 @@ Large scientific and industrial facilities still power themselves through line-f
 
 **Go-to-market.** Phase II pairs with a National Laboratory or facility program to qualify the module on facility power systems; in parallel, the module family enters AI data center power architectures, where our feasibility-and-onboarding platform (a separate product line, described in our Topic 3 pitch) gives channel access to architecture decision-makers. The pitches share hardware context but do not overlap in scope.
 
-*(160 words)*
 
 ### A4. Team Qualifications Narrative *(word limit: 200)*
 
@@ -62,7 +59,6 @@ Large scientific and industrial facilities still power themselves through line-f
 
 **Financial.** Phase I funding carries bench validation; Phase II follows facility qualification. Beyond Phase II: platform revenue and private capital against the AIDC pipeline.
 
-*(95 words)*
 
 ## Part B — Short-Answer Questions (3)
 
