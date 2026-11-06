@@ -1,4 +1,4 @@
-"""Simulate, ranked-results, and sensitivity endpoints (spec art_Xihp9Qa2).
+"""The seven MVP endpoints (spec art_Xihp9Qa2, API shape).
 
 Routes own orchestration and error mapping only: 404 unknown project, 409
 state conflicts (no site / no results), 422 body validation (pydantic, with
@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from api import store
 from api.ranking import DEFAULT_WEIGHTS, rank_scenarios
+from api.report import render_report
 from api.schemas import (
     ProjectCreate,
     ProjectOut,
@@ -157,3 +159,18 @@ def sensitivity(
         architectures=names,
         points=[SensitivityPointOut.from_engine(p) for p in points],
     )
+
+
+@router.get("/projects/{project_id}/report", response_class=HTMLResponse)
+def report(project_id: str, session: Session = SessionDep) -> Response:
+    project = _project_or_404(session, project_id)
+    stored = _results_or_409(project)
+    site = _site_or_409(project)
+    html = render_report(
+        project_id=project.id,
+        name=project.name,
+        location=project.location,
+        site=site,
+        payload=_results_payload(project, stored),
+    )
+    return HTMLResponse(content=html)
