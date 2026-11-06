@@ -57,11 +57,18 @@ from engine.results import HOURS_PER_YEAR, GpuDispatch, HourlySeries, ScenarioRe
 
 
 class Architecture(Protocol):
-    """Engine contract (spec art_Xihp9Qa2): simulate one site, once."""
+    """Engine contract (spec art_Xihp9Qa2): simulate one site, once.
+
+    ``lead_time_factor`` scales the documented equipment lead times
+    (assumptions.py) for sensitivity sweeps; it is not a site fact, so it is
+    a simulation argument, not a SiteProfile field.
+    """
 
     name: str
 
-    def simulate(self, site: SiteProfile) -> ScenarioResult: ...
+    def simulate(
+        self, site: SiteProfile, lead_time_factor: float = 1.0
+    ) -> ScenarioResult: ...
 
 
 @dataclass(frozen=True)
@@ -274,7 +281,13 @@ class _BaseArchitecture:
     name: str
     equipment_key: ClassVar[str]
 
-    def simulate(self, site: SiteProfile) -> ScenarioResult:
+    def simulate(
+        self, site: SiteProfile, lead_time_factor: float = 1.0
+    ) -> ScenarioResult:
+        """Evaluate one site; ``lead_time_factor`` >= 0 scales equipment lead
+        times (sensitivity axis, engine.sensitivity)."""
+        if lead_time_factor < 0.0:
+            raise ValueError("lead_time_factor must be non-negative")
         chain = self._chain()
         der = self._der_build(site)
         hourly, totals = _simulate_year(site, der, chain)
@@ -298,7 +311,7 @@ class _BaseArchitecture:
             capex_usd=capex,
             opex_usd_year=opex,
             cost_per_mwh=cost_per_mwh,
-            time_to_power_months=self._time_to_power_months(site),
+            time_to_power_months=self._time_to_power_months(site, lead_time_factor),
             resilience_score=self._resilience_score(site, der),
             carbon_kgCO2_kWh=carbon_per_kwh,
             hourly=hourly,
@@ -310,7 +323,7 @@ class _BaseArchitecture:
     def _der_build(self, site: SiteProfile) -> DerBuild:
         raise NotImplementedError
 
-    def _time_to_power_months(self, site: SiteProfile) -> float:
+    def _time_to_power_months(self, site: SiteProfile, lead_time_factor: float) -> float:
         raise NotImplementedError
 
     def _capex_usd(self, site: SiteProfile, der: DerBuild) -> float:
@@ -369,7 +382,10 @@ class GridOnly(_BaseArchitecture):
     def _der_build(self, site: SiteProfile) -> DerBuild:
         return ZERO_DER
 
-    def _time_to_power_months(self, site: SiteProfile) -> float:
+    def _time_to_power_months(self, site: SiteProfile, lead_time_factor: float) -> float:
+        # No separate equipment-lead term: transformer/switchgear procurement
+        # is bundled into the interconnection wait (a site fact), so the
+        # equipment-lead-time factor does not move this scenario.
         return float(site.interconnection_wait_months)
 
 
@@ -386,7 +402,8 @@ class GridPlusBess(_BaseArchitecture):
     def _der_build(self, site: SiteProfile) -> DerBuild:
         return DerBuild(bess_mwh=site.bess_mwh)
 
-    def _time_to_power_months(self, site: SiteProfile) -> float:
+    def _time_to_power_months(self, site: SiteProfile, lead_time_factor: float) -> float:
+        # Same timing basis as grid-only (GridOnly._time_to_power_months).
         return float(site.interconnection_wait_months)
 
 
@@ -404,8 +421,11 @@ class MvdcSstHybrid(_BaseArchitecture):
     def _der_build(self, site: SiteProfile) -> DerBuild:
         return DerBuild(bess_mwh=site.bess_mwh)
 
-    def _time_to_power_months(self, site: SiteProfile) -> float:
-        return float(site.interconnection_wait_months) + SST_EQUIPMENT_LEAD_MONTHS
+    def _time_to_power_months(self, site: SiteProfile, lead_time_factor: float) -> float:
+        return (
+            float(site.interconnection_wait_months)
+            + SST_EQUIPMENT_LEAD_MONTHS * lead_time_factor
+        )
 
 
 class IslandableMicrogrid(_BaseArchitecture):
@@ -427,8 +447,11 @@ class IslandableMicrogrid(_BaseArchitecture):
             genset_mw=site.genset_mw,
         )
 
-    def _time_to_power_months(self, site: SiteProfile) -> float:
-        return min(float(site.interconnection_wait_months), DER_EQUIPMENT_LEAD_MONTHS)
+    def _time_to_power_months(self, site: SiteProfile, lead_time_factor: float) -> float:
+        return min(
+            float(site.interconnection_wait_months),
+            DER_EQUIPMENT_LEAD_MONTHS * lead_time_factor,
+        )
 
 
 ARCHITECTURES: Final[dict[str, Architecture]] = {
