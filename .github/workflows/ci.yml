@@ -108,6 +108,34 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-      # Extension points for later PRs (spec art_Xihp9Qa2, D4):
-      # - DOE pitch word-count check: add a job running a script over
-      #   docs/doe/pitch-*.md once those land.
+  pitches:
+    name: DOE pitch word counts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check pitch structure word counts
+        run: python3 docs/doe/check_pitch_words.py
+
+  # Aggregate merge gate (spec art_Xihp9Qa2, D4): mark this single check
+  # required in branch protection. It is green only when every suite above
+  # passes, so suites can be added to the workflow without reconfiguring
+  # protection. `if: !cancelled()` keeps the gate reporting red on a failure
+  # instead of silently skipping with its dependencies.
+  merge-gate:
+    name: Merge gate (all suites green)
+    needs: [python, web, e2e, pitches]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every suite succeeded
+        run: |
+          if "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "true"; then
+            echo "One or more suites failed, were cancelled, or were skipped"
+            exit 1
+          fi
+          echo "All suites green: mergeable"

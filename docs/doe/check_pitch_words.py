@@ -10,6 +10,13 @@ Short answers 2-3 and the structured answers have caps that are only stated
 in the Pitch Development Guide inside AMP; the script reports their counts
 without failing them.
 
+Both pitch heading styles are tracked: Topic 3 uses "### Narrative N" /
+"### Short answer N" and Topic 22 uses "### A1."-"### A4." / "### B1."-
+"### B3." with the word limits stated inline. Sections tracked but whose
+stated cap differs from the public cap would be flagged here — Topic 22's
+stated limits (A1 100, A2-A4 200, B1-B3 25) match the public mapping.
+A changed count mapping belongs in this list and nowhere else.
+
 Usage:
     python3 check_pitch_words.py [file.md ...]
 
@@ -21,16 +28,21 @@ import re
 import sys
 from pathlib import Path
 
-# (section-title regex, word cap, enforced)
+# (section-title regex, word cap, enforced). Two heading styles, one mapping:
+# Topic 3 "Narrative N"/"Short answer N" and Topic 22 "A1."-"A4."/"B1."-"B3."
+# both map to narrative 1-4, short answer 1-3.
 SECTIONS = [
-    (r"^###\s+Narrative 1\b", 100, True),
-    (r"^###\s+Narrative 2\b", 200, True),
-    (r"^###\s+Narrative 3\b", 200, True),
-    (r"^###\s+Narrative 4\b", 200, True),
-    (r"^###\s+Short answer 1\b", 25, True),
-    (r"^###\s+Short answer 2\b", None, False),
-    (r"^###\s+Short answer 3\b", None, False),
+    (r"^###\s+Narrative 1\b|^###\s+A1\.", 100, True),
+    (r"^###\s+Narrative 2\b|^###\s+A2\.", 200, True),
+    (r"^###\s+Narrative 3\b|^###\s+A3\.", 200, True),
+    (r"^###\s+Narrative 4\b|^###\s+A4\.", 200, True),
+    (r"^###\s+Short answer 1\b|^###\s+B1\.", 25, True),
+    (r"^###\s+Short answer 2\b|^###\s+B2\.", None, False),
+    (r"^###\s+Short answer 3\b|^###\s+B3\.", None, False),
 ]
+
+# Titles that count toward the across-all-four narrative budget.
+NARRATIVE_TITLE = re.compile(r"^Narrative|^A\d\.")
 
 NARRATIVE_TOTAL_CAP = 500
 HEADING = re.compile(r"^(#{2,3})\s+(.*)$")
@@ -89,7 +101,7 @@ def check_file(path: Path) -> bool:
             status = "PASS" if words <= enforced_cap else "FAIL"
             if words > enforced_cap:
                 ok = False
-            if title.startswith("Narrative"):
+            if NARRATIVE_TITLE.match(title):
                 narrative_total += words
             print(f"  [{status}] {title}: {words} words (cap {enforced_cap})")
         else:
