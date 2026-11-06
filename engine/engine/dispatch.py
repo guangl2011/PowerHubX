@@ -9,6 +9,17 @@ from __future__ import annotations
 from engine.results import GpuDispatch
 
 
+def bess_available_discharge_mw(soc_mwh: float, min_soc_mwh: float) -> float:
+    """Dischargeable BESS energy above the ride-through reservation, in MW.
+
+    The min-SOC reservation rule (spec art_Xihp9Qa2): the band below
+    ``min_soc_mwh`` is reserved for grid-forming ride-through and is never
+    discharged. On the 1 h timestep, MWh of headroom is MW of discharge for
+    one hour. SOC at or below the floor leaves zero.
+    """
+    return max(soc_mwh - min_soc_mwh, 0.0)
+
+
 def dispatch_gpu_flexible_load(
     deficit_mw: float,
     flexible_gpu_mw: float,
@@ -31,7 +42,7 @@ def dispatch_gpu_flexible_load(
     bess_used = min(
         bess_discharge_mw,
         deficit_mw,
-        max(soc_mwh - min_soc_mwh, 0.0) / 1.0,
+        bess_available_discharge_mw(soc_mwh, min_soc_mwh),
     )
     residual = deficit_mw - bess_used
     curtailed = min(residual, flexible_gpu_mw)
