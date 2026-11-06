@@ -27,3 +27,6 @@ apps/web/test-results/
 .vscode/
 .idea/
 .DS_Store
+
+# Local dev SQLite (apps/api default store)
+powerhubx.db

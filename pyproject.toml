@@ -16,8 +16,16 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "RUF"]
 python_version = "3.11"
 strict = true
 warn_unreachable = true
-# Editable installs drop copies under build/; never check them.
-exclude = ["(^|/)build/", "(^|/)\\.venv/"]
+# Editable installs drop copies under build/; never check them. tests/ dirs
+# are excluded too: mypy maps test modules by basename, and the repo's two
+# test trees (engine/tests, apps/api/tests) each carry conftest.py and
+# same-named test modules — a second copy is a duplicate-module error, not
+# a real defect. Tests are runtime-verified by pytest; mypy gates src trees.
+exclude = ["(^|/)build/", "(^|/)\\.venv/", "(^|/)tests/"]
+# The repo's outer `engine/` project dir shares its name with the inner
+# `engine` package (engine/engine/); without this hint, imports of `engine`
+# from apps/api resolve to the outer dir as a bare namespace.
+mypy_path = "engine"
 # Third-party libs without shipped typing (some transitive deps) start in
 # silent mode; tighten per-module as stubs land.
 ignore_missing_imports = true
