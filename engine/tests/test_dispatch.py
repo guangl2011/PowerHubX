@@ -8,9 +8,18 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from engine.dispatch import dispatch_gpu_flexible_load
+from engine.dispatch import bess_available_discharge_mw, dispatch_gpu_flexible_load
 
 EPS = 1e-9
+
+
+def test_bess_reservation_rule_leaves_the_floor_intact() -> None:
+    """Min-SOC reservation: only energy above the floor is dischargeable."""
+    assert bess_available_discharge_mw(soc_mwh=50.0, min_soc_mwh=10.0) == 40.0
+    assert bess_available_discharge_mw(soc_mwh=10.0, min_soc_mwh=10.0) == 0.0
+    # Already below the floor (e.g. after a harder event than planned for):
+    # the reservation holds — nothing is dischargeable.
+    assert bess_available_discharge_mw(soc_mwh=5.0, min_soc_mwh=10.0) == 0.0
 
 
 @settings(max_examples=200)
