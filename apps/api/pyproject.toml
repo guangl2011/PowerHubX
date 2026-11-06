@@ -1,0 +1,28 @@
+[project]
+name = "powerhubx-api"
+version = "0.1.0"
+description = "PowerHubX FastAPI backend: project store, simulation orchestration, report export."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn>=0.30",
+    "sqlalchemy>=2.0",
+    "powerhubx-engine",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "httpx2>=1.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["api*"]
+
+[tool.uv.sources]
+powerhubx-engine = { path = "../../engine", editable = true }
