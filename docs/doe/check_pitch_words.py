@@ -80,7 +80,7 @@ def check_file(path: Path) -> bool:
     narrative_total = 0
     print(f"\n{path}:")
     for title, words in sections:
-        enforced_cap = None
+        enforced_cap: int | None = None
         for pattern, cap, enforced in SECTIONS:
             if re.match(pattern, f"### {title}"):
                 enforced_cap = cap if enforced else None
