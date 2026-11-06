@@ -30,37 +30,39 @@
 
 ### A1. Project Summary, Topic, and Mission Alignment *(word limit: 100)*
 
-Power delivery for large scientific and industrial facilities still relies on stacks of line-frequency magnetics: heavy, slow to protect, and blind to their own condition. We propose a SiC solid-state power conversion module that combines voltage conversion, high-frequency isolation, microsecond fault isolation, and high-speed self-diagnostic acquisition in one unit. Phase I proves the concept at 25 kW bench scale. This serves Topic 22's interest in high-performance electronics and data acquisition for DOE facility programs, with a commercial path into AI data center power systems.
+Large scientific and industrial facilities still power themselves through line-frequency magnetics: heavy, slow to protect, and blind to their own condition. We propose a SiC solid-state power conversion module combining voltage conversion, high-frequency isolation, microsecond fault protection, and high-speed self-diagnostic acquisition in one unit. Phase I proves the concept at 25 kW bench scale. This serves Topic 22's interest in high-performance electronics and data acquisition for DOE facility programs, with a commercial path into AI data center power systems.
 
-*(98 words)*
+*(79 words)*
 
 ### A2. Technical Promise Narrative *(word limit: 200)*
 
-**Significance.** Conversion from medium voltage to end loads passes through four to five cascaded stages built around line-frequency transformers, losing 8–15% of energy in AI data center chains (company research estimates, 2026). These stages are large, face multi-year equipment lead times, and protect themselves in tens of milliseconds through external breakers — too slow for semiconductor loads. Per-module visibility is essentially absent.
+**Significance.** Conversion from medium voltage to end loads passes through four to five cascaded stages built around line-frequency transformers, losing 8–15% of energy in AI data center chains (company research estimates, 2026). Stages are large, face multi-year equipment lead times, and protect through external breakers in tens of milliseconds — too slow for semiconductor loads. Per-module visibility is absent.
 
-**Innovation.** The proposed module merges functions that today occupy separate equipment: a multilevel SiC input stage, a medium-frequency isolation transformer (20–50 kHz target, versus 60 Hz), integrated gate-driver protection acting in microseconds, and a high-speed sensing and acquisition layer — per-module voltage, current, and temperature telemetry with edge classification of overcurrent and partial-discharge signatures.
+**Innovation.** The module merges functions that today occupy separate equipment: a multilevel SiC input stage, a medium-frequency isolation transformer (20–50 kHz target, versus 60 Hz), gate-driver protection acting in microseconds, and a high-speed acquisition layer — per-module voltage, current, and temperature telemetry with edge classification of overcurrent and partial-discharge signatures.
 
-**Feasibility.** SiC power devices are commercially mature; the engineering risk is integration. The principal technical uncertainty is insulation and protection integrity at high switching frequency and power density: can a compact medium-frequency transformer sustain repeated high dv/dt stress, and can protection act fast enough without nuisance trips? Phase I investigates exactly these two questions on a bench prototype.
+**Feasibility.** SiC power devices are commercially mature; the engineering risk is integration. The principal uncertainty is insulation and protection integrity at high switching frequency and power density: can a compact medium-frequency transformer survive repeated high dv/dt stress, and can protection act fast without nuisance trips? Phase I investigates both on a bench prototype.
 
-*(193 words)*
+*(162 words)*
 
 ### A3. Commercialization Potential Narrative *(word limit: 200)*
 
-**Value proposition.** Two customer groups need the same hardware. Operators of AI data centers face interconnection queues of up to seven years and transformer/switchgear shortfalls estimated near 30% (research estimates cited in company strategy, 2026); a compact conversion module with built-in protection shortens deployment and shrinks footprint. Future HEP/NP facilities need power conversion with detector-grade protection and condition monitoring for magnet, radio-frequency, and detector powering systems.
+**Value proposition.** Two customer groups need the same hardware. AI data center operators face interconnection queues up to seven years and transformer shortfalls near 30% (research estimates cited in company strategy, 2026); a compact module with built-in protection shortens deployment and shrinks footprint. Future HEP/NP facilities need conversion with detector-grade protection and condition monitoring for magnet, radio-frequency, and detector powering systems.
 
-**Competitive advantage.** Incumbent vendors sell passive line-frequency equipment without integrated fast protection or telemetry. Solid-state transformer entrants target utility markets; none ship a module that protects and monitors itself at the hardware level, which is the wedge this project develops.
+**Competitive advantage.** Incumbents sell passive line-frequency equipment without integrated fast protection or telemetry; solid-state transformer entrants target utility markets. None ship a module that protects and monitors itself at the hardware level — the wedge this project develops.
 
-**Go-to-market.** Phase II pairs with a National Laboratory or facility program to qualify the module on facility power systems; in parallel, the module family enters AI data center power architectures, where our feasibility-and-onboarding platform (a separate product line, described in our Topic 3 pitch) gives direct channel access to buyers making architecture decisions. The two pitches share hardware context but do not overlap in scope.
+**Go-to-market.** Phase II pairs with a National Laboratory or facility program to qualify the module on facility power systems; in parallel, the module family enters AI data center power architectures, where our feasibility-and-onboarding platform (a separate product line, described in our Topic 3 pitch) gives channel access to architecture decision-makers. The pitches share hardware context but do not overlap in scope.
 
-*(192 words)*
+*(160 words)*
 
 ### A4. Team Qualifications Narrative *(word limit: 200)*
 
-**Company.** The principal investigator brings [N] years in power electronics design and test, including [relevant project or publication — FOUNDER INPUT REQUIRED; placeholder, not evidence]. PowerHubX operates a simulation and evaluation platform for power-architecture decisions, which supplies the modeling infrastructure for module design trade-offs.
+**Company.** The principal investigator brings [N] years in power electronics design and test, including [relevant project or publication — FOUNDER INPUT REQUIRED; placeholder, not evidence]. PowerHubX operates a simulation and evaluation platform for power-architecture decisions, supplying the modeling base for module trade-offs.
 
-**Partnerships.** Planned: a National Laboratory power-conversion group for test-bench access and later qualification; a SiC device supplier; one AIDC operator as a reference site. [FOUNDER INPUT REQUIRED: confirm which exist today versus planned.]
+**Partnerships.** Planned: a National Laboratory power-conversion group for test-bench access; a SiC device supplier; one AIDC operator as reference site. [FOUNDER INPUT REQUIRED: confirm which exist today versus planned.]
 
-**Financial.** Phase I funding carries bench validation; Phase II follows on facility qualification. Beyond Phase II: platform revenue and private capital raised against the AIDC pipeline the platform targets.
+**Financial.** Phase I funding carries bench validation; Phase II follows facility qualification. Beyond Phase II: platform revenue and private capital against the AIDC pipeline.
+
+*(95 words)*
 
 ## Part B — Short-Answer Questions (3)
 
@@ -188,11 +190,28 @@ awk '/^### A1\./,/^### A2\./' docs/doe/pitch-topic22.md | tail -n +2 | head -n -
 
 | Answer | Official limit | Draft count |
 | --- | --- | --- |
-| A1 Project Summary | 100 | 98 |
-| A2 Technical Promise | 200 | 193 |
-| A3 Commercialization Potential | 200 | 192 |
-| A4 Team Qualifications | 200 | ~120 (placeholders unfilled) |
-| **Narrative total** | **≤500 (brief) / 700 (official sum)** | **~603 → must be cut to ≤500 at founder review** |
-| B1 / B2 / B3 | 25 each | 21 / 21 / 24 |
+| A1 Project Summary, Topic, and Mission Alignment | 100 | 79 |
+| A2 Technical Promise Narrative | 200 | 162 |
+| A3 Commercialization Potential Narrative | 200 | 160 |
+| A4 Team Qualifications Narrative | 200 | 95 (placeholders included; grows when filled) |
+| **Narrative total** | **≤500 (internal brief) / 700 (official per-question sum)** | **496** |
+| B1 / B2 / B3 (short answers) | 25 each | 21 / 21 / 25 |
 
-**Note:** the four official narrative limits sum to 700 words; the internal brief for PowerHubX pitches is stricter (≤500 total). The draft currently exceeds 500 because A4 placeholders will grow when filled. Resolution options at founder review: (a) trim A2/A3 by ~50 words each, (b) cap A4 at ~150 words, or (c) drop the internal 500-word cap and use the official 700. Decision owner: Richard Lu.
+**Note:** the official per-question limits sum to 700 words; the internal brief for PowerHubX pitches is stricter (≤500 total). This draft sits at 496 with placeholder text included, leaving ~4 words of headroom — thin. When Richard fills the A4 placeholders, trim A2/A3 to compensate, or accept the official 700-word ceiling. Decision owner: Richard Lu.
+
+## Appendix 5 — Reviewer-Checklist Optimization Record
+
+Checked against the FY26 Fall evaluation criteria (opportunity page, retrieved 2026-11-06) before the optimization commit:
+
+| Reviewer criterion | Where addressed | Check |
+| --- | --- | --- |
+| Topic and mission alignment | A1 (plain-language, jargon-free, names the topic's own scope); reviewer note handles the scope-risk honestly | ✓ |
+| Technical promise: significance / innovation / feasibility | A2 covers all three elements in the guide's order; principal technical uncertainty named explicitly (insulation + protection integrity) | ✓ |
+| Commercialization potential: value / competitive advantage / GTM | A3 covers all three; Q7 demand claim is honest (documented requirements, not claimed pilots) | ✓ |
+| Team qualifications: company / partnerships / financial | A4 covers all three; unverifiable facts marked FOUNDER INPUT REQUIRED instead of invented | ✓ |
+| Structured answers consistent with narratives | C1 rationale matches A2's uncertainty; C3's most-consequential barrier matches A3's differentiation story | ✓ |
+| Avoids Not-of-Interest triggers | No standalone-software claim; hardware prototype + commercialization path stated; facility relevance argued, not asserted | ✓ |
+| Hardware-layer discipline (no generic grid/software claims) | Grid/compute co-optimization confined to the Topic 3 cross-reference (Appendix 2); platform mentioned only as go-to-market channel | ✓ |
+| Word limits | Per-question limits met; internal 500-word cap met at 496 (Appendix 4) | ✓ |
+| Human-voice pass | No banned filler words (checked: leverage, robust, innovative, utilize, ecosystem, and similar); prose-first narratives | ✓ |
+| Compliance facts | Deadline 2026-12-16 2 PM ET; $300K/$306.5K ceiling; ≤3 pitches; PDF ≤5 MB — stated in header, sourced from opportunity page | ✓ |
