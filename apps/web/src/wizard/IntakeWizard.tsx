@@ -6,6 +6,8 @@ import { useState } from "react";
 import { SelectField, TextField } from "./fields";
 import { CRITICALITY_LEVELS, emptyDraft } from "./types";
 import type { SiteProfile, WizardDraft } from "./types";
+import { toSiteProfile, validateStep } from "./validation";
+import type { Errors } from "./validation";
 
 interface WizardStep {
   title: string;
@@ -54,6 +56,7 @@ interface IntakeWizardProps {
 export function IntakeWizard({ onComplete }: IntakeWizardProps) {
   const [draft, setDraft] = useState<WizardDraft>(emptyDraft);
   const [stepIndex, setStepIndex] = useState(0);
+  const [errors, setErrors] = useState<Errors>({});
   const [completed, setCompleted] = useState<SiteProfile | null>(null);
 
   if (completed) {
@@ -77,18 +80,32 @@ export function IntakeWizard({ onComplete }: IntakeWizardProps) {
   }
 
   function handleNext() {
-    // Validation is wired in the next commit (site profile validation).
+    // Gate progression on the current step: invalid values block the wizard
+    // and surface per-field errors instead of reaching a later step.
+    const stepErrors = validateStep(stepIndex, draft);
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
     if (isLastStep) {
-      const profile = toSiteProfile(draft);
+      const profile = toSiteProfile(draft, STEPS.length);
       setCompleted(profile);
       onComplete(profile);
       return;
     }
+    setErrors({});
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
   }
 
   function handleBack() {
+    setErrors({});
     setStepIndex((i) => Math.max(i - 1, 0));
+  }
+
+  function reset() {
+    setDraft(emptyDraft());
+    setStepIndex(0);
+    setErrors({});
   }
 
   return (
@@ -108,7 +125,7 @@ export function IntakeWizard({ onComplete }: IntakeWizardProps) {
       <h2>{`Step ${stepIndex + 1} of ${STEPS.length}: ${step.title}`}</h2>
       <p>{step.description}</p>
 
-      <StepFields stepIndex={stepIndex} draft={draft} update={update} />
+      <StepFields stepIndex={stepIndex} draft={draft} errors={errors} update={update} />
 
       <div className="wizard-actions">
         <button type="button" onClick={handleBack} disabled={stepIndex === 0}>
@@ -117,15 +134,7 @@ export function IntakeWizard({ onComplete }: IntakeWizardProps) {
         <button type="button" onClick={handleNext}>
           {isLastStep ? "Generate site profile" : "Next"}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setDraft(emptyDraft());
-            setStepIndex(0);
-          }}
-        >
-          Reset
-        </button>
+        <button type="button" onClick={reset}>Reset</button>
       </div>
     </section>
   );
@@ -134,54 +143,43 @@ export function IntakeWizard({ onComplete }: IntakeWizardProps) {
 interface StepFieldsProps {
   stepIndex: number;
   draft: WizardDraft;
+  errors: Errors;
   update: <K extends keyof WizardDraft>(key: K, value: WizardDraft[K]) => void;
 }
 
-function StepFields({ stepIndex, draft, update }: StepFieldsProps) {
+function StepFields({ stepIndex, draft, errors, update }: StepFieldsProps) {
+  const text = (label: string, field: keyof WizardDraft) => (
+    <TextField
+      label={label}
+      value={draft[field]}
+      error={errors[field]}
+      onChange={(v) => update(field, v as string)}
+    />
+  );
+
   switch (stepIndex) {
     case 0:
       return (
         <>
-          <TextField
-            label="Site location"
-            value={draft.location}
-            onChange={(v) => update("location", v)}
-          />
-          <TextField
-            label="Utility tariff (USD/kWh)"
-            value={draft.tariff_usd_kwh}
-            onChange={(v) => update("tariff_usd_kwh", v)}
-          />
+          {text("Site location", "location")}
+          {text("Utility tariff (USD/kWh)", "tariff_usd_kwh")}
         </>
       );
     case 1:
       return (
         <>
-          <TextField
-            label="IT load (MW)"
-            value={draft.it_load_mw}
-            onChange={(v) => update("it_load_mw", v)}
-          />
-          <TextField
-            label="Rack density (kW per rack)"
-            value={draft.rack_density_kw}
-            onChange={(v) => update("rack_density_kw", v)}
-          />
+          {text("IT load (MW)", "it_load_mw")}
+          {text("Rack density (kW per rack)", "rack_density_kw")}
         </>
       );
     case 2:
-      return (
-        <TextField
-          label="Flexible load share (0 to 1)"
-          value={draft.flexible_share}
-          onChange={(v) => update("flexible_share", v)}
-        />
-      );
+      return text("Flexible load share (0 to 1)", "flexible_share");
     case 3:
       return (
         <SelectField
           label="Reliability target (criticality)"
           value={draft.criticality}
+          error={errors.criticality}
           options={CRITICALITY_LEVELS}
           onChange={(v) => update("criticality", v as WizardDraft["criticality"])}
         />
@@ -189,73 +187,24 @@ function StepFields({ stepIndex, draft, update }: StepFieldsProps) {
     case 4:
       return (
         <>
-          <TextField
-            label="BESS capacity (MWh)"
-            value={draft.bess_mwh}
-            onChange={(v) => update("bess_mwh", v)}
-          />
-          <TextField
-            label="Solar PV (MW)"
-            value={draft.pv_mw}
-            onChange={(v) => update("pv_mw", v)}
-          />
-          <TextField
-            label="Fuel cell (MW)"
-            value={draft.fuel_cell_mw}
-            onChange={(v) => update("fuel_cell_mw", v)}
-          />
-          <TextField
-            label="Backup generator (MW)"
-            value={draft.genset_mw}
-            onChange={(v) => update("genset_mw", v)}
-          />
+          {text("BESS capacity (MWh)", "bess_mwh")}
+          {text("Solar PV (MW)", "pv_mw")}
+          {text("Fuel cell (MW)", "fuel_cell_mw")}
+          {text("Backup generator (MW)", "genset_mw")}
         </>
       );
     case 5:
       return (
         <>
-          <TextField
-            label="Grid interconnection limit (MW)"
-            value={draft.grid_limit_mw}
-            onChange={(v) => update("grid_limit_mw", v)}
-          />
-          <TextField
-            label="Interconnection wait (months)"
-            value={draft.interconnection_wait_months}
-            onChange={(v) => update("interconnection_wait_months", v)}
-          />
+          {text("Grid interconnection limit (MW)", "grid_limit_mw")}
+          {text("Interconnection wait (months)", "interconnection_wait_months")}
         </>
       );
     case 6:
-      return (
-        <TextField
-          label="Target energization date (YYYY-MM-DD)"
-          value={draft.target_energization}
-          onChange={(v) => update("target_energization", v)}
-        />
-      );
+      return text("Target energization date (YYYY-MM-DD)", "target_energization");
     default:
       throw new Error(`Unknown wizard step index: ${stepIndex}`);
   }
-}
-
-// Temporary draft-to-profile conversion; numeric parsing and validation land
-// in the next commit (validation.ts).
-function toSiteProfile(draft: WizardDraft): SiteProfile {
-  return {
-    grid_limit_mw: Number(draft.grid_limit_mw),
-    it_load_mw: Number(draft.it_load_mw),
-    flexible_share: Number(draft.flexible_share),
-    rack_density_kw: Number(draft.rack_density_kw),
-    criticality: draft.criticality as SiteProfile["criticality"],
-    bess_mwh: Number(draft.bess_mwh),
-    pv_mw: Number(draft.pv_mw),
-    fuel_cell_mw: Number(draft.fuel_cell_mw),
-    genset_mw: Number(draft.genset_mw),
-    tariff_usd_kwh: Number(draft.tariff_usd_kwh),
-    interconnection_wait_months: Number(draft.interconnection_wait_months),
-    target_energization: draft.target_energization,
-  };
 }
 
 interface CompletionScreenProps {
